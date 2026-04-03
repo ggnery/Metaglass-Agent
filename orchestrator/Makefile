@@ -1,4 +1,4 @@
-.PHONY: proto up down restart logs db migrate build clean
+.PHONY: proto up down restart logs db migrate build clean fmt lint typecheck check
 
 proto: ## Generate Python code from .proto files
 	docker compose run --rm proto-gen
@@ -26,6 +26,17 @@ build: ## Rebuild all images
 
 clean: ## Stop all services and remove volumes
 	docker compose down -v
+
+fmt: ## Auto-format and fix lint issues
+	uv run ruff check --fix src && uv run ruff format src
+
+lint: ## Run ruff linter and formatter check
+	uv run ruff check src && uv run ruff format --check src
+
+typecheck: ## Run pyright type checker
+	uv run pyright src
+
+check: lint typecheck ## Run all checks (lint + typecheck)
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*##' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'

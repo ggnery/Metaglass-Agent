@@ -14,3 +14,24 @@ dependencies = [
     "grpcio-reflection>=1.70",
     "protobuf>=5.29",
 ]
+
+[tool.pyright]
+pythonVersion = "3.13"
+venvPath = "."
+venv = ".venv"
+include = ["src"]
+exclude = ["generated"]
+
+[tool.ruff]
+target-version = "py313"
+src = ["src"]
+exclude = ["generated"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.408",
+    "ruff>=0.15.9",
+]
