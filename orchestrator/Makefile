@@ -1,4 +1,4 @@
-.PHONY: proto up down restart logs db migrate build clean fmt lint typecheck test check
+.PHONY: proto up down restart logs db qdrant migrate build clean fmt lint typecheck test check
 
 proto: ## Generate Python code from .proto files
 	docker compose run --rm proto-gen
@@ -17,6 +17,9 @@ logs: ## Tail orchestrator logs
 
 db: ## Start only the database
 	docker compose up -d db
+
+qdrant: ## Start only Qdrant
+	docker compose up -d qdrant
 
 migrate: ## Run database migrations
 	docker compose run --rm migrations
