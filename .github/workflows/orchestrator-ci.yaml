@@ -1,0 +1,56 @@
+name: Orchestrator CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "orchestrator/**"
+      - "proto/**"
+  pull_request:
+    paths:
+      - "orchestrator/**"
+      - "proto/**"
+
+defaults:
+  run:
+    working-directory: orchestrator
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "latest"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Generate proto stubs
+        run: |
+          mkdir -p generated
+          uv run python -m grpc_tools.protoc \
+            --proto_path=../proto \
+            --python_out=generated \
+            --pyi_out=generated \
+            --grpc_python_out=generated \
+            ../proto/*.proto
+          for f in generated/*_pb2*.py; do
+            sed -i 's/^import \([a-z_]*_pb2\)/from . import \1/' "$f"
+          done
+          touch generated/__init__.py
+
+      - name: Lint
+        run: uv run ruff check src && uv run ruff format --check src
+
+      - name: Typecheck
+        run: uv run pyright src
+
+      - name: Tests
+        run: uv run pytest

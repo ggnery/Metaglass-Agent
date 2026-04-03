@@ -21,6 +21,7 @@ logger = getLogger(__name__)
 
 GRPC_PORT = os.getenv("GRPC_PORT", "50051")
 
+
 def serve() -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
