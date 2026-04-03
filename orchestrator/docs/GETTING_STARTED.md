@@ -146,6 +146,28 @@ uv run python src/main.py
 
 ---
 
+## Testando a API com grpcurl
+
+Com o orchestrator rodando, voce pode testar a API usando [grpcurl](https://github.com/fullstorydev/grpcurl).
+
+### Listar servicos disponiveis
+
+```bash
+grpcurl -plaintext localhost:50051 list
+```
+
+### Criar uma sessao
+
+```bash
+grpcurl -plaintext -d '{
+  "user_id": "user-123",
+  "device_id": "device-456",
+  "initial_metadata": {"language": "pt-BR", "timezone": "America/Sao_Paulo"}
+}' localhost:50051 metaglass.SessionService/CreateSession
+```
+
+---
+
 ## Testes e qualidade de codigo
 
 Todos os comandos abaixo usam `uv run` e nao precisam de Docker.
