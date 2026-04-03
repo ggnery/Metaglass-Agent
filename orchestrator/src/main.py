@@ -10,7 +10,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from generated import context_pb2_grpc, orchestrator_pb2_grpc, session_pb2_grpc
 
-from db.connection import SessionLocal, engine
+from db.postgres import SessionLocal, engine
+from db.qdrant import qdrant_client
 from services.context_service import ContextServiceServicer
 from services.orchestrator_service import OrchestratorServiceServicer
 from services.session_service import SessionServiceServicer
@@ -20,18 +21,20 @@ logger = getLogger(__name__)
 
 GRPC_PORT = os.getenv("GRPC_PORT", "50051")
 
-
 def serve() -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     orchestrator_pb2_grpc.add_OrchestratorServiceServicer_to_server(
-        OrchestratorServiceServicer(db_factory=SessionLocal), server
+        OrchestratorServiceServicer(db_factory=SessionLocal, qdrant=qdrant_client),
+        server,
     )
     session_pb2_grpc.add_SessionServiceServicer_to_server(
-        SessionServiceServicer(db_factory=SessionLocal), server
+        SessionServiceServicer(db_factory=SessionLocal, qdrant=qdrant_client),
+        server,
     )
     context_pb2_grpc.add_ContextServiceServicer_to_server(
-        ContextServiceServicer(db_factory=SessionLocal), server
+        ContextServiceServicer(db_factory=SessionLocal, qdrant=qdrant_client),
+        server,
     )
 
     # Enable gRPC reflection so grpcurl can discover services
@@ -46,10 +49,13 @@ def serve() -> None:
     )
     reflection.enable_server_reflection(service_names, server)
 
-    # Verify database connectivity before accepting requests
+    # Verify connectivity before accepting requests
     with engine.connect() as conn:
         conn.exec_driver_sql("SELECT 1")
     logger.info("Database connection verified")
+
+    qdrant_client.get_collections()
+    logger.info("Qdrant connection verified")
 
     server.add_insecure_port(f"[::]:{GRPC_PORT}")
     logger.info("gRPC server starting on port %s", GRPC_PORT)

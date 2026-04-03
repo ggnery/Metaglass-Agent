@@ -2,12 +2,18 @@ from collections.abc import Callable
 
 import grpc
 from generated import session_pb2, session_pb2_grpc
+from qdrant_client import QdrantClient
 from sqlalchemy.orm import Session
 
 
 class SessionServiceServicer(session_pb2_grpc.SessionServiceServicer):
-    def __init__(self, db_factory: Callable[[], Session]) -> None:
+    def __init__(
+        self,
+        db_factory: Callable[[], Session],
+        qdrant: QdrantClient,
+    ) -> None:
         self._db = db_factory
+        self._qdrant = qdrant
 
     def CreateSession(
         self,

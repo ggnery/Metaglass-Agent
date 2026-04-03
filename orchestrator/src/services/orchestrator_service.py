@@ -2,14 +2,20 @@ from collections.abc import Callable
 
 import grpc
 from generated import orchestrator_pb2, orchestrator_pb2_grpc
+from qdrant_client import QdrantClient
 from sqlalchemy.orm import Session
 
 
 class OrchestratorServiceServicer(
     orchestrator_pb2_grpc.OrchestratorServiceServicer,
 ):
-    def __init__(self, db_factory: Callable[[], Session]) -> None:
+    def __init__(
+        self,
+        db_factory: Callable[[], Session],
+        qdrant: QdrantClient,
+    ) -> None:
         self._db = db_factory
+        self._qdrant = qdrant
 
     def Query(
         self,

@@ -13,6 +13,7 @@ dependencies = [
     "grpcio-tools>=1.70",
     "grpcio-reflection>=1.70",
     "protobuf>=5.29",
+    "qdrant-client>=1.17.1",
 ]
 
 [tool.pyright]
