@@ -15,5 +15,54 @@ services:
       timeout: 3s
       retries: 5
 
+  migrations:
+    build: .
+    command: alembic upgrade head
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-orchestrator}
+      POSTGRES_HOST: db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  proto-gen:
+    build: .
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        python -m grpc_tools.protoc \
+          --proto_path=/app/proto \
+          --python_out=/app/generated \
+          --pyi_out=/app/generated \
+          --grpc_python_out=/app/generated \
+          /app/proto/*.proto &&
+        for f in /app/generated/*_pb2*.py; do
+          sed -i 's/^import \([a-z_]*_pb2\)/from . import \1/' "$$f";
+        done &&
+        touch /app/generated/__init__.py &&
+        echo "Proto compilation complete"
+    volumes:
+      - ./proto:/app/proto:ro
+      - ./generated:/app/generated
+
+  orchestrator:
+    build: .
+    command: python src/main.py
+    ports:
+      - "${GRPC_PORT:-50051}:50051"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-orchestrator}
+      POSTGRES_HOST: db
+      GRPC_PORT: "50051"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+
 volumes:
   postgres_data:
