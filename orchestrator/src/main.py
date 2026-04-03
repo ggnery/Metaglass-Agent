@@ -12,6 +12,7 @@ from generated import orchestrator_pb2_grpc, session_pb2_grpc, context_pb2_grpc
 from services.orchestrator_service import OrchestratorServiceServicer
 from services.session_service import SessionServiceServicer
 from services.context_service import ContextServiceServicer
+from db.connection import engine
 
 basicConfig(level=INFO)
 logger = getLogger(__name__)
@@ -43,6 +44,11 @@ def serve():
         reflection.SERVICE_NAME,
     )
     reflection.enable_server_reflection(service_names, server)
+
+    # Verify database connectivity before accepting requests
+    with engine.connect() as conn:
+        conn.exec_driver_sql("SELECT 1")
+    logger.info("Database connection verified")
 
     server.add_insecure_port(f"[::]:{GRPC_PORT}")
     logger.info("gRPC server starting on port %s", GRPC_PORT)
