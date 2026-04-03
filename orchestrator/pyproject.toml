@@ -20,7 +20,8 @@ dependencies = [
 pythonVersion = "3.13"
 venvPath = "."
 venv = ".venv"
-include = ["src"]
+include = ["src", "alembic"]
+extraPaths = ["src"]
 exclude = ["generated"]
 
 [tool.ruff]

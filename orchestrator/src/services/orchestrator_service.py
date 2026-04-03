@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 
 import grpc
 from generated import orchestrator_pb2, orchestrator_pb2_grpc
@@ -30,7 +30,16 @@ class OrchestratorServiceServicer(
         self,
         request: orchestrator_pb2.QueryRequest,
         context: grpc.ServicerContext,
-    ) -> orchestrator_pb2.QueryResponse:
+    ) -> Iterator[orchestrator_pb2.QueryResponse]:
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("QueryStream not implemented")
         raise NotImplementedError("QueryStream not implemented")
+
+    def StreamQuery(
+        self,
+        request_iterator: Iterator[orchestrator_pb2.QueryRequest],
+        context: grpc.ServicerContext,
+    ) -> Iterator[orchestrator_pb2.QueryResponse]:
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("StreamQuery not implemented")
+        raise NotImplementedError("StreamQuery not implemented")

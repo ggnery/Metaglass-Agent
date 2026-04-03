@@ -66,7 +66,7 @@ services:
         touch /app/generated/__init__.py &&
         echo "Proto compilation complete"
     volumes:
-      - ./proto:/app/proto:ro
+      - ../proto:/app/proto:ro
       - ./generated:/app/generated
 
   orchestrator:
