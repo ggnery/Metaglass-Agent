@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package metaglass;
+
+import "common.proto";
+
+// ══════════════════════════════════════════════════════════════
+//  SESSION SERVICE — Connection lifecycle management
+// ══════════════════════════════════════════════════════════════
+//  Starts when the user puts on the glasses / activates the
+//  assistant and ends on disconnect. The orchestrator uses the
+//  session to load context from Qdrant/PostgreSQL.
+service SessionService {
+
+  // Opens a session — loads user profile, recent history (Postgres),
+  // and semantic context (Qdrant).
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
+
+  // Periodic heartbeat from middleware to keep the session alive.
+  // Also carries lightweight metrics (latency, glasses battery, etc.)
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+
+  // Gracefully closes the session — flushes context to the datalake.
+  rpc EndSession(EndSessionRequest) returns (EndSessionResponse);
+
+  // Retrieves session state (useful after glasses reconnection).
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
+}
+
+// ── CreateSession ──────────────────────────────────────────────────
+message CreateSessionRequest {
+  string user_id = 1;
+  string device_id = 2;
+  map<string, string> initial_metadata = 3; // language, timezone, GPS, etc.
+}
+
+message CreateSessionResponse {
+  Status status = 1;
+  string session_id = 2;
+}
+
+// ── Heartbeat ──────────────────────────────────────────────────────
+message HeartbeatRequest {
+  string session_id = 1;
+  int64 timestamp_ms = 2;
+  map<string, string> metrics = 3;
+}
+
+message HeartbeatResponse {
+  Status status = 1;
+}
+
+// ── EndSession ─────────────────────────────────────────────────────
+message EndSessionRequest {
+  string session_id = 1;
+}
+
+message EndSessionResponse {
+  Status status = 1;
+}
+
+// ── GetSession ─────────────────────────────────────────────────────
+message GetSessionRequest {
+  string session_id = 1;
+}
+
+message GetSessionResponse {
+  Status status = 1;
+  string session_id = 2;
+  string user_id = 3;
+  SessionState state = 4;
+}
