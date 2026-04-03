@@ -5,7 +5,7 @@ from logging import basicConfig, getLogger, INFO
 
 import grpc
 
-# Ensure the project root is in the path so `generated` and `db` are importable
+# Ensure the project root is in the path so `generated` is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from generated import orchestrator_pb2_grpc, session_pb2_grpc, context_pb2_grpc
