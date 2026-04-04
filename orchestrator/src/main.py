@@ -4,14 +4,16 @@ from concurrent import futures
 from logging import INFO, basicConfig, getLogger
 
 import grpc
+from qdrant_client import QdrantClient
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 # Ensure the project root is in the path so `generated` is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from generated import context_pb2_grpc, orchestrator_pb2_grpc, session_pb2_grpc
 
-from db.postgres import SessionLocal, engine
-from db.qdrant import qdrant_client
+from config import Config
 from services.context_service import ContextServiceServicer
 from services.orchestrator_service import OrchestratorServiceServicer
 from services.session_service import SessionServiceServicer
@@ -19,10 +21,18 @@ from services.session_service import SessionServiceServicer
 basicConfig(level=INFO)
 logger = getLogger(__name__)
 
-GRPC_PORT = os.getenv("GRPC_PORT", "50051")
 
+def main() -> None:
+    engine: Engine = create_engine(Config.DATABASE_URL, pool_pre_ping=True)
+    SessionLocal: sessionmaker[Session] = sessionmaker(bind=engine)
 
-def serve() -> None:
+    qdrant_client: QdrantClient = QdrantClient(
+        host=Config.QDRANT_HOST,
+        port=Config.QDRANT_PORT,
+        grpc_port=Config.QDRANT_GRPC_PORT,
+        prefer_grpc=True,
+    )
+
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     orchestrator_pb2_grpc.add_OrchestratorServiceServicer_to_server(
@@ -58,11 +68,11 @@ def serve() -> None:
     qdrant_client.get_collections()
     logger.info("Qdrant connection verified")
 
-    server.add_insecure_port(f"[::]:{GRPC_PORT}")
-    logger.info("gRPC server starting on port %s", GRPC_PORT)
+    server.add_insecure_port(f"[::]:{Config.GRPC_PORT}")
+    logger.info("gRPC server starting on port %s", Config.GRPC_PORT)
     server.start()
     server.wait_for_termination()
 
 
 if __name__ == "__main__":
-    serve()
+    main()
