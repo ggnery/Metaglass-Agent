@@ -84,6 +84,12 @@ services:
         condition: service_healthy
       migrations:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/${GRPC_PORT:-50051}'"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
 volumes:
   postgres_data:
