@@ -60,6 +60,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Generate proto stubs
+        run: docker compose run --rm proto-gen
+
       - name: Build images
         run: docker compose build
 
