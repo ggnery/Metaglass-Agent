@@ -1,12 +1,12 @@
 import pytest
 
 from generated import orchestrator_pb2
-from services.orchestrator_service import OrchestratorServiceServicer
+from server.orchestrator_server import OrchestratorServer
 
 
 @pytest.fixture
 def service(mock_db_factory, mock_qdrant):
-    return OrchestratorServiceServicer(db_factory=mock_db_factory, qdrant=mock_qdrant)
+    return OrchestratorServer(db_factory=mock_db_factory, qdrant=mock_qdrant)
 
 
 def test_query_is_unimplemented(service, mock_servicer_context):

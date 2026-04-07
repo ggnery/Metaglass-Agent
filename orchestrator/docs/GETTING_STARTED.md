@@ -163,7 +163,7 @@ grpcurl -plaintext -d '{
   "user_id": "user-123",
   "device_id": "device-456",
   "initial_metadata": {"language": "pt-BR", "timezone": "America/Sao_Paulo"}
-}' localhost:50051 metaglass.SessionService/CreateSession
+}' localhost:50051 metaglass.Session/CreateSession
 ```
 
 ---

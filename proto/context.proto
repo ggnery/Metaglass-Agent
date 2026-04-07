@@ -5,11 +5,11 @@ package metaglass;
 import "common.proto";
 
 // ══════════════════════════════════════════════════════════════
-//  CONTEXT SERVICE — Datalake interface
+//  CONTEXT — Datalake interface
 // ══════════════════════════════════════════════════════════════
 //  Allows middleware (or other clients) to query and inject
 //  context directly into the datalake.
-service ContextService {
+service Context {
 
   // Semantic search on Qdrant — pre-loads relevant memories/documents
   rpc SemanticSearch(SemanticSearchRequest) returns (SemanticSearchResponse);

@@ -1,12 +1,12 @@
 import pytest
 
 from generated import session_pb2
-from services.session_service import SessionServiceServicer
+from server.session_server import SessionServer
 
 
 @pytest.fixture
 def service(mock_db_factory, mock_qdrant):
-    return SessionServiceServicer(db_factory=mock_db_factory, qdrant=mock_qdrant)
+    return SessionServer(db_factory=mock_db_factory, qdrant=mock_qdrant)
 
 
 def test_create_session_is_unimplemented(service, mock_servicer_context):

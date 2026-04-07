@@ -1,12 +1,12 @@
 import pytest
 
 from generated import context_pb2
-from services.context_service import ContextServiceServicer
+from server.context_server import ContextServer
 
 
 @pytest.fixture
 def service(mock_db_factory, mock_qdrant):
-    return ContextServiceServicer(db_factory=mock_db_factory, qdrant=mock_qdrant)
+    return ContextServer(db_factory=mock_db_factory, qdrant=mock_qdrant)
 
 
 def test_semantic_search_is_unimplemented(service, mock_servicer_context):

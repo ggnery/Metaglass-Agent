@@ -14,9 +14,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from generated import context_pb2_grpc, orchestrator_pb2_grpc, session_pb2_grpc
 
 from config import Config
-from services.context_service import ContextServiceServicer
-from services.orchestrator_service import OrchestratorServiceServicer
-from services.session_service import SessionServiceServicer
+from server.context_server import ContextServer
+from server.orchestrator_server import OrchestratorServer
+from server.session_server import SessionServer
 
 basicConfig(level=INFO)
 logger = getLogger(__name__)
@@ -35,16 +35,16 @@ def main() -> None:
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
-    orchestrator_pb2_grpc.add_OrchestratorServiceServicer_to_server(
-        OrchestratorServiceServicer(db_factory=SessionLocal, qdrant=qdrant_client),
+    orchestrator_pb2_grpc.add_OrchestratorServicer_to_server(
+        OrchestratorServer(db_factory=SessionLocal, qdrant=qdrant_client),
         server,
     )
-    session_pb2_grpc.add_SessionServiceServicer_to_server(
-        SessionServiceServicer(db_factory=SessionLocal, qdrant=qdrant_client),
+    session_pb2_grpc.add_SessionServicer_to_server(
+        SessionServer(db_factory=SessionLocal, qdrant=qdrant_client),
         server,
     )
-    context_pb2_grpc.add_ContextServiceServicer_to_server(
-        ContextServiceServicer(db_factory=SessionLocal, qdrant=qdrant_client),
+    context_pb2_grpc.add_ContextServicer_to_server(
+        ContextServer(db_factory=SessionLocal, qdrant=qdrant_client),
         server,
     )
 
@@ -53,9 +53,9 @@ def main() -> None:
     from grpc_reflection.v1alpha import reflection
 
     service_names = (
-        orchestrator_pb2.DESCRIPTOR.services_by_name["OrchestratorService"].full_name,
-        session_pb2.DESCRIPTOR.services_by_name["SessionService"].full_name,
-        context_pb2.DESCRIPTOR.services_by_name["ContextService"].full_name,
+        orchestrator_pb2.DESCRIPTOR.services_by_name["Orchestrator"].full_name,
+        session_pb2.DESCRIPTOR.services_by_name["Session"].full_name,
+        context_pb2.DESCRIPTOR.services_by_name["Context"].full_name,
         reflection.SERVICE_NAME,
     )
     reflection.enable_server_reflection(service_names, server)

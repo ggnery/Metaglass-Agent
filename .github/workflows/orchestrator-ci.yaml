@@ -54,3 +54,28 @@ jobs:
 
       - name: Tests
         run: uv run pytest
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build images
+        run: docker compose build
+
+      - name: Bring orchestrator stack up
+        run: docker compose up -d --wait orchestrator
+
+      - name: Verify orchestrator and dependencies are running
+        run: |
+          docker compose ps
+          docker compose ps db --format '{{.State}}' | grep -q running
+          docker compose ps qdrant --format '{{.State}}' | grep -q running
+          docker compose ps orchestrator --format '{{.State}}' | grep -q running
+          docker compose logs orchestrator | grep -q "Database connection verified"
+          docker compose logs orchestrator | grep -q "Qdrant connection verified"
+          docker compose logs orchestrator | grep -q "gRPC server starting on port"
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

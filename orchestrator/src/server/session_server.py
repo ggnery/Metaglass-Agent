@@ -6,7 +6,7 @@ from qdrant_client import QdrantClient
 from sqlalchemy.orm import Session
 
 
-class SessionServiceServicer(session_pb2_grpc.SessionServiceServicer):
+class SessionServer(session_pb2_grpc.SessionServicer):
     def __init__(
         self,
         db_factory: Callable[[], Session],

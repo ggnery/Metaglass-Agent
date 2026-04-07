@@ -5,9 +5,9 @@ package metaglass;
 import "common.proto";
 
 // ══════════════════════════════════════════════════════════════
-//  MAIN SERVICE — Query channel between Middleware and Orchestrator
+//  ORCHESTRATOR — Query channel between Middleware and Orchestrator
 // ══════════════════════════════════════════════════════════════
-service OrchestratorService {
+service Orchestrator {
 
   // Unary request-response — for complete, one-shot queries
   // (e.g. typed text, single image captured by the glasses).

@@ -5,12 +5,12 @@ package metaglass;
 import "common.proto";
 
 // ══════════════════════════════════════════════════════════════
-//  SESSION SERVICE — Connection lifecycle management
+//  SESSION — Connection lifecycle management
 // ══════════════════════════════════════════════════════════════
 //  Starts when the user puts on the glasses / activates the
 //  assistant and ends on disconnect. The orchestrator uses the
 //  session to load context from Qdrant/PostgreSQL.
-service SessionService {
+service Session {
 
   // Opens a session — loads user profile, recent history (Postgres),
   // and semantic context (Qdrant).

@@ -6,8 +6,8 @@ from qdrant_client import QdrantClient
 from sqlalchemy.orm import Session
 
 
-class OrchestratorServiceServicer(
-    orchestrator_pb2_grpc.OrchestratorServiceServicer,
+class OrchestratorServer(
+    orchestrator_pb2_grpc.OrchestratorServicer,
 ):
     def __init__(
         self,
