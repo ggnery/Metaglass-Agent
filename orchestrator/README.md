@@ -15,3 +15,23 @@ O projeto e composto por:
 
 - [Como rodar o projeto](docs/GETTING_STARTED.md)
 - [Como contribuir](docs/CONTRIBUTING.md)
+
+## Dentro do Orquestrador
+
+![Arquitetura interna do Orquestrador](docs/images/into_arch.png)
+
+- **server**
+  - Recebe as requisicoes via gRPC.
+  - Valida a estrutura da requisicao.
+  - Encaminha para o servico correspondente.
+
+- **service**
+  - Implementa a logica principal do orquestrador.
+  - Realiza chamadas personalizadas para agentes locais via LangGraph.
+  - Usa a camada de DB para buscar/persistir contexto.
+  - Aplica validacoes adicionais para reduzir bugs.
+
+- **db**
+  - Armazena e busca contexto das sessoes de usuario.
+  - Armazena e busca documentos conforme query e contexto.
+  - Usa ORM (Object Relational Mapping).
