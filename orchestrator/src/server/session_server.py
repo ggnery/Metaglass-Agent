@@ -15,6 +15,15 @@ class SessionServer(session_pb2_grpc.SessionServicer):
         self._db = db_factory
         self._qdrant = qdrant
 
+    def CreateUser(
+        self,
+        request: session_pb2.CreateUserRequest,
+        context: grpc.ServicerContext,
+    ) -> session_pb2.CreateUserResponse:
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("CreateUser not implemented")
+        raise NotImplementedError("CreateUser not implemented")
+
     def CreateSession(
         self,
         request: session_pb2.CreateSessionRequest,
