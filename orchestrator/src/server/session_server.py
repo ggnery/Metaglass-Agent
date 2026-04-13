@@ -1,9 +1,11 @@
 from collections.abc import Callable
 
 import grpc
-from generated import session_pb2, session_pb2_grpc
+from generated import common_pb2, session_pb2, session_pb2_grpc
 from qdrant_client import QdrantClient
 from sqlalchemy.orm import Session
+
+from service.session_service import SessionService
 
 
 class SessionServer(session_pb2_grpc.SessionServicer):
@@ -12,17 +14,63 @@ class SessionServer(session_pb2_grpc.SessionServicer):
         db_factory: Callable[[], Session],
         qdrant: QdrantClient,
     ) -> None:
-        self._db = db_factory
-        self._qdrant = qdrant
+        self.session_service = SessionService(db_factory, qdrant)
+
+    def RegisterDevice(
+        self,
+        request: session_pb2.RegisterDeviceRequest,
+        context: grpc.ServicerContext,
+    ) -> session_pb2.RegisterDeviceResponse:
+        try:
+            device = self.session_service.register_device(
+                device_name=request.device_name or None,
+                device_model=request.device_model or None,
+                metadata=dict(request.metadata),
+            )
+
+            return session_pb2.RegisterDeviceResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_OK,
+                    message="Device registered successfully",
+                ),
+                device_id=str(device.id),
+            )
+        except Exception as e:
+            return session_pb2.RegisterDeviceResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_ERROR,
+                    message=f"Error registering device: {str(e)}",
+                )
+            )
 
     def CreateUser(
         self,
         request: session_pb2.CreateUserRequest,
         context: grpc.ServicerContext,
     ) -> session_pb2.CreateUserResponse:
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("CreateUser not implemented")
-        raise NotImplementedError("CreateUser not implemented")
+        try:
+            user = self.session_service.create_user(
+                name=request.name or None,
+                email=request.email or None,
+                preferred_language=request.preferred_language or "pt-BR",
+                device_id=request.device_id or None,
+                metadata=dict(request.metadata),
+            )
+
+            return session_pb2.CreateUserResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_OK,
+                    message="User created successfully",
+                ),
+                user_id=str(user.id),
+            )
+        except Exception as e:
+            return session_pb2.CreateUserResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_ERROR,
+                    message=f"Error creating user: {str(e)}",
+                )
+            )
 
     def CreateSession(
         self,

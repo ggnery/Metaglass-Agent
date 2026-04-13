@@ -9,7 +9,19 @@ def service(mock_db_factory, mock_qdrant):
     return SessionServer(db_factory=mock_db_factory, qdrant=mock_qdrant)
 
 
-def test_create_user_is_unimplemented(service, mock_servicer_context):
+def test_register_device(service, mock_servicer_context):
+    request = session_pb2.RegisterDeviceRequest(
+        device_name="Ray-Ban Meta",
+        device_model="V1",
+        metadata={"firmware": "1.0.0"},
+    )
+    response = service.RegisterDevice(request, mock_servicer_context)
+    assert response.status.code == 1  # STATUS_CODE_OK
+    assert response.status.message == "Device registered successfully"
+    assert response.device_id is not None
+
+
+def test_create_user(service, mock_servicer_context):
     request = session_pb2.CreateUserRequest(
         name="John Doe",
         email="john@example.com",
@@ -17,8 +29,11 @@ def test_create_user_is_unimplemented(service, mock_servicer_context):
         device_id="00000000-0000-0000-0000-000000000000",
         metadata={"key": "value"},
     )
-    with pytest.raises(NotImplementedError):
-        service.CreateUser(request, mock_servicer_context)
+    # The method should now return a success response
+    response = service.CreateUser(request, mock_servicer_context)
+    assert response.status.code == 1  # STATUS_CODE_OK
+    assert response.status.message == "User created successfully"
+    assert response.user_id is not None
 
 
 def test_create_session_is_unimplemented(service, mock_servicer_context):

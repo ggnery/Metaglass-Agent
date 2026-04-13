@@ -12,6 +12,9 @@ import "common.proto";
 //  session to load context from Qdrant/PostgreSQL.
 service Session {
 
+  // Registers a new device (glasses).
+  rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse);
+
   // Creates a new user profile.
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
 
@@ -42,6 +45,19 @@ message CreateUserRequest {
 message CreateUserResponse {
   Status status = 1;
   string user_id = 2;
+}
+
+
+// ── RegisterDevice ─────────────────────────────────────────────────
+message RegisterDeviceRequest {
+  string device_name = 1;
+  string device_model = 2;
+  map<string, string> metadata = 3;
+}
+
+message RegisterDeviceResponse {
+  Status status = 1;
+  string device_id = 2;
 }
 
 
