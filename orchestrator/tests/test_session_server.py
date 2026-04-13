@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import MagicMock
 
 from generated import session_pb2
 from server.session_server import SessionServer
@@ -36,22 +37,58 @@ def test_create_user(service, mock_servicer_context):
     assert response.user_id is not None
 
 
-def test_create_session_is_unimplemented(service, mock_servicer_context):
-    request = session_pb2.CreateSessionRequest(user_id="u1", device_id="d1")
-    with pytest.raises(NotImplementedError):
-        service.CreateSession(request, mock_servicer_context)
+def test_create_session(service, mock_servicer_context):
+    request = session_pb2.CreateSessionRequest(
+        user_id="00000000-0000-0000-0000-000000000000",
+        device_id="00000000-0000-0000-0000-000000000000",
+        initial_metadata={"lang": "en"},
+    )
+    
+    # Mocking create_session
+    mock_session = MagicMock()
+    mock_session.id = "11111111-1111-1111-1111-111111111111"
+    service.session_service.create_session = MagicMock(return_value=mock_session)
+    
+    response = service.CreateSession(request, mock_servicer_context)
+    assert response.status.code == 1  # STATUS_CODE_OK
+    assert response.session_id == str(mock_session.id)
 
 
-def test_heartbeat_is_unimplemented(service, mock_servicer_context):
-    request = session_pb2.HeartbeatRequest(session_id="s1", timestamp_ms=1000)
-    with pytest.raises(NotImplementedError):
-        service.Heartbeat(request, mock_servicer_context)
+def test_heartbeat(service, mock_servicer_context):
+    request = session_pb2.HeartbeatRequest(
+        session_id="00000000-0000-0000-0000-000000000000",
+        timestamp_ms=1000,
+    )
+
+    # Test success (covers active and lost -> active resurrection)
+    service.session_service.heartbeat = lambda sid: True
+    response = service.Heartbeat(request, mock_servicer_context)
+    assert response.status.code == 1  # STATUS_CODE_OK
+    assert response.status.message == "Heartbeat received"
+
+    # Test failure (not found or closed)
+    service.session_service.heartbeat = lambda sid: False
+    response = service.Heartbeat(request, mock_servicer_context)
+    assert response.status.code == 2  # STATUS_CODE_ERROR
+    assert "Session not found or closed" in response.status.message
 
 
-def test_end_session_is_unimplemented(service, mock_servicer_context):
-    request = session_pb2.EndSessionRequest(session_id="s1")
-    with pytest.raises(NotImplementedError):
-        service.EndSession(request, mock_servicer_context)
+def test_end_session(service, mock_servicer_context):
+    request = session_pb2.EndSessionRequest(
+        session_id="00000000-0000-0000-0000-000000000000"
+    )
+
+    # Test success
+    service.session_service.end_session = lambda sid: True
+    response = service.EndSession(request, mock_servicer_context)
+    assert response.status.code == 1  # STATUS_CODE_OK
+    assert response.status.message == "Session ended successfully"
+
+    # Test failure
+    service.session_service.end_session = lambda sid: False
+    response = service.EndSession(request, mock_servicer_context)
+    assert response.status.code == 2  # STATUS_CODE_ERROR
+    assert "Session closed or not found" in response.status.message
 
 
 def test_get_session_is_unimplemented(service, mock_servicer_context):

@@ -77,27 +77,85 @@ class SessionServer(session_pb2_grpc.SessionServicer):
         request: session_pb2.CreateSessionRequest,
         context: grpc.ServicerContext,
     ) -> session_pb2.CreateSessionResponse:
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("CreateSession not implemented")
-        raise NotImplementedError("CreateSession not implemented")
+        try:
+            session = self.session_service.create_session(
+                user_id=request.user_id,
+                device_id=request.device_id or None,
+                initial_metadata=dict(request.initial_metadata),
+            )
+
+            return session_pb2.CreateSessionResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_OK,
+                    message="Session created successfully",
+                ),
+                session_id=str(session.id),
+            )
+        except Exception as e:
+            return session_pb2.CreateSessionResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_ERROR,
+                    message=f"Error creating session: {str(e)}",
+                )
+            )
 
     def Heartbeat(
         self,
         request: session_pb2.HeartbeatRequest,
         context: grpc.ServicerContext,
     ) -> session_pb2.HeartbeatResponse:
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Heartbeat not implemented")
-        raise NotImplementedError("Heartbeat not implemented")
+        try:
+            success = self.session_service.heartbeat(request.session_id)
+            if not success:
+                return session_pb2.HeartbeatResponse(
+                    status=common_pb2.Status(
+                        code=common_pb2.StatusCode.STATUS_CODE_ERROR,
+                        message=f"Session not found or closed: {request.session_id}",
+                    )
+                )
+
+            return session_pb2.HeartbeatResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_OK,
+                    message="Heartbeat received",
+                )
+            )
+        except Exception as e:
+            return session_pb2.HeartbeatResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_ERROR,
+                    message=f"Error processing heartbeat: {str(e)}",
+                )
+            )
 
     def EndSession(
         self,
         request: session_pb2.EndSessionRequest,
         context: grpc.ServicerContext,
     ) -> session_pb2.EndSessionResponse:
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("EndSession not implemented")
-        raise NotImplementedError("EndSession not implemented")
+        try:
+            success = self.session_service.end_session(request.session_id)
+            if not success:
+                return session_pb2.EndSessionResponse(
+                    status=common_pb2.Status(
+                        code=common_pb2.StatusCode.STATUS_CODE_ERROR,
+                        message=f"Session closed or not found: {request.session_id}",
+                    )
+                )
+
+            return session_pb2.EndSessionResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_OK,
+                    message="Session ended successfully",
+                )
+            )
+        except Exception as e:
+            return session_pb2.EndSessionResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_ERROR,
+                    message=f"Error ending session: {str(e)}",
+                )
+            )
 
     def GetSession(
         self,

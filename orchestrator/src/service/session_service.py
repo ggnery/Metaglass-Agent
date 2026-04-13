@@ -1,10 +1,14 @@
 from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import cast
 from uuid import UUID
 
 from qdrant_client import QdrantClient
+from sqlalchemy import CursorResult, update
 from sqlalchemy.orm import Session
 
-from db.models import Device, User
+from db.models import Device, SessionState, User
+from db.models import Session as SessionModel
 
 
 class SessionService:
@@ -62,3 +66,72 @@ class SessionService:
             db.refresh(user)
 
         return user
+
+    def create_session(
+        self,
+        user_id: str,
+        device_id: str | None = None,
+        initial_metadata: dict | None = None,
+    ) -> SessionModel:
+        """
+        Creates a new session in 'active' state.
+        """
+        user_uuid = UUID(user_id)
+        device_uuid = UUID(device_id) if (device_id and device_id.strip()) else None
+
+        session = SessionModel(
+            user_id=user_uuid,
+            device_id=device_uuid,
+            state=SessionState.active,
+            initial_metadata=initial_metadata or {},
+            last_heartbeat=datetime.now(UTC),
+        )
+
+        with self.db_factory() as db:
+            db.add(session)
+            db.commit()
+            db.refresh(session)
+
+        return session
+
+    def heartbeat(self, session_id: str) -> bool:
+        """
+        Updates the last_heartbeat timestamp and transitions state to 'active'.
+        This handles resurrection from 'lost' to 'active'.
+        """
+        session_uuid = UUID(session_id)
+        with self.db_factory() as db:
+            # We transition to 'active' from any state except potentially 'closed'
+            # following the rule: [*] -> active: Heartbeat
+            stmt = (
+                update(SessionModel)
+                .where(SessionModel.id == session_uuid)
+                .where(SessionModel.state != SessionState.closed)
+                .values(
+                    last_heartbeat=datetime.now(UTC),
+                    state=SessionState.active,
+                )
+            )
+            result = cast(CursorResult, db.execute(stmt))
+            db.commit()
+            return result.rowcount > 0
+
+    def end_session(self, session_id: str) -> bool:
+        """
+        Gracefully closes a session.
+        Rule: lost -> closed: EndSession (also supports active -> closed)
+        """
+        session_uuid = UUID(session_id)
+        with self.db_factory() as db:
+            stmt = (
+                update(SessionModel)
+                .where(SessionModel.id == session_uuid)
+                .where(SessionModel.state != SessionState.closed)
+                .values(
+                    state=SessionState.closed,
+                    ended_at=datetime.now(UTC),
+                )
+            )
+            result = cast(CursorResult, db.execute(stmt))
+            db.commit()
+            return result.rowcount > 0
