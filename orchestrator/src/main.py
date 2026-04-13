@@ -17,6 +17,7 @@ from config import Config
 from server.context_server import ContextServer
 from server.orchestrator_server import OrchestratorServer
 from server.session_server import SessionServer
+from service.session_reaper import SessionReaper
 
 basicConfig(level=INFO)
 logger = getLogger(__name__)
@@ -32,6 +33,9 @@ def main() -> None:
         grpc_port=Config.QDRANT_GRPC_PORT,
         prefer_grpc=True,
     )
+
+    reaper = SessionReaper(db_factory=SessionLocal, qdrant=qdrant_client)
+    reaper.start()
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 

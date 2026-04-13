@@ -1,11 +1,20 @@
 from collections.abc import Callable
+from typing import cast
 
 import grpc
 from generated import common_pb2, session_pb2, session_pb2_grpc
 from qdrant_client import QdrantClient
 from sqlalchemy.orm import Session
 
+from db import models
 from service.session_service import SessionService
+
+# Map database enum to gRPC enum
+_STATE_MAP = {
+    models.SessionState.active: common_pb2.SessionState.SESSION_STATE_ACTIVE,
+    models.SessionState.lost: common_pb2.SessionState.SESSION_STATE_LOST,
+    models.SessionState.closed: common_pb2.SessionState.SESSION_STATE_CLOSED,
+}
 
 
 class SessionServer(session_pb2_grpc.SessionServicer):
@@ -162,6 +171,35 @@ class SessionServer(session_pb2_grpc.SessionServicer):
         request: session_pb2.GetSessionRequest,
         context: grpc.ServicerContext,
     ) -> session_pb2.GetSessionResponse:
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("GetSession not implemented")
-        raise NotImplementedError("GetSession not implemented")
+        try:
+            session = self.session_service.get_session(request.session_id)
+            if not session:
+                return session_pb2.GetSessionResponse(
+                    status=common_pb2.Status(
+                        code=common_pb2.StatusCode.STATUS_CODE_ERROR,
+                        message=f"Session not found: {request.session_id}",
+                    )
+                )
+
+            # Explicitly cast session.state to satisfy type checker
+            state_enum = cast(models.SessionState, session.state)
+            grpc_state = _STATE_MAP.get(
+                state_enum, common_pb2.SessionState.SESSION_STATE_UNSPECIFIED
+            )
+
+            return session_pb2.GetSessionResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_OK,
+                    message="Session retrieved successfully",
+                ),
+                session_id=str(session.id),
+                user_id=str(session.user_id),
+                state=grpc_state,
+            )
+        except Exception as e:
+            return session_pb2.GetSessionResponse(
+                status=common_pb2.Status(
+                    code=common_pb2.StatusCode.STATUS_CODE_ERROR,
+                    message=f"Error retrieving session: {str(e)}",
+                )
+            )

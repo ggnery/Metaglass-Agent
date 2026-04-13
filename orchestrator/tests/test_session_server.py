@@ -91,7 +91,27 @@ def test_end_session(service, mock_servicer_context):
     assert "Session closed or not found" in response.status.message
 
 
-def test_get_session_is_unimplemented(service, mock_servicer_context):
-    request = session_pb2.GetSessionRequest(session_id="s1")
-    with pytest.raises(NotImplementedError):
-        service.GetSession(request, mock_servicer_context)
+def test_get_session(service, mock_servicer_context):
+    request = session_pb2.GetSessionRequest(
+        session_id="00000000-0000-0000-0000-000000000000"
+    )
+
+    # Mock success
+    mock_session = MagicMock()
+    mock_session.id = "00000000-0000-0000-0000-000000000000"
+    mock_session.user_id = "11111111-1111-1111-1111-111111111111"
+    from db.models import SessionState
+    mock_session.state = SessionState.active
+    service.session_service.get_session = lambda sid: mock_session
+
+    response = service.GetSession(request, mock_servicer_context)
+    assert response.status.code == 1  # STATUS_CODE_OK
+    assert response.session_id == str(mock_session.id)
+    assert response.user_id == str(mock_session.user_id)
+    assert response.state == 1  # SESSION_STATE_ACTIVE
+
+    # Test failure
+    service.session_service.get_session = lambda sid: None
+    response = service.GetSession(request, mock_servicer_context)
+    assert response.status.code == 2  # STATUS_CODE_ERROR
+    assert "Session not found" in response.status.message

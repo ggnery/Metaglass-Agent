@@ -20,3 +20,12 @@ class Config:
     QDRANT_HOST: str = os.getenv("QDRANT_HOST", "localhost")
     QDRANT_PORT: int = int(os.getenv("QDRANT_PORT", "6333"))
     QDRANT_GRPC_PORT: int = int(os.getenv("QDRANT_GRPC_PORT", "6334"))
+
+    # Session Reaper Config
+    REAPER_INTERVAL_SECONDS: int = int(os.getenv("REAPER_INTERVAL_SECONDS", "30"))
+    ACTIVE_SESSION_TIMEOUT_SECONDS: int = int(
+        os.getenv("ACTIVE_SESSION_TIMEOUT_SECONDS", "60")
+    )
+    LOST_SESSION_TIMEOUT_SECONDS: int = int(
+        os.getenv("LOST_SESSION_TIMEOUT_SECONDS", "3600")
+    )

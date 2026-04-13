@@ -10,6 +10,11 @@ x-qdrant-env: &qdrant-env
   QDRANT_PORT: ${QDRANT_PORT:-6333}
   QDRANT_GRPC_PORT: ${QDRANT_GRPC_PORT:-6334}
 
+x-reaper-env: &reaper-env
+  REAPER_INTERVAL_SECONDS: ${REAPER_INTERVAL_SECONDS:-30}
+  ACTIVE_SESSION_TIMEOUT_SECONDS: ${ACTIVE_SESSION_TIMEOUT_SECONDS:-60}
+  LOST_SESSION_TIMEOUT_SECONDS: ${LOST_SESSION_TIMEOUT_SECONDS:-3600}
+
 services:
   db:
     image: postgres:14.22-trixie
@@ -75,7 +80,7 @@ services:
     ports:
       - "${GRPC_PORT:-50051}:50051"
     environment:
-      <<: [*postgres-env, *qdrant-env]
+      <<: [*postgres-env, *qdrant-env, *reaper-env]
       GRPC_PORT: ${GRPC_PORT:-50051}
     depends_on:
       db:
