@@ -40,7 +40,6 @@ def test_create_user(service, mock_servicer_context):
 def test_create_session(service, mock_servicer_context):
     request = session_pb2.CreateSessionRequest(
         user_id="00000000-0000-0000-0000-000000000000",
-        device_id="00000000-0000-0000-0000-000000000000",
         initial_metadata={"lang": "en"},
     )
     

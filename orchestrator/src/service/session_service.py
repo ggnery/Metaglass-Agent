@@ -70,24 +70,28 @@ class SessionService:
     def create_session(
         self,
         user_id: str,
-        device_id: str | None = None,
         initial_metadata: dict | None = None,
     ) -> SessionModel:
         """
         Creates a new session in 'active' state.
+        Fetches the device_id automatically from the user's profile.
         """
         user_uuid = UUID(user_id)
-        device_uuid = UUID(device_id) if (device_id and device_id.strip()) else None
-
-        session = SessionModel(
-            user_id=user_uuid,
-            device_id=device_uuid,
-            state=SessionState.active,
-            initial_metadata=initial_metadata or {},
-            last_heartbeat=datetime.now(UTC),
-        )
 
         with self.db_factory() as db:
+            # Fetch the user to get their associated device_id
+            user = db.query(User).filter(User.id == user_uuid).first()
+            if not user:
+                raise ValueError(f"User not found: {user_id}")
+
+            session = SessionModel(
+                user_id=user_uuid,
+                device_id=user.device_id,
+                state=SessionState.active,
+                initial_metadata=initial_metadata or {},
+                last_heartbeat=datetime.now(UTC),
+            )
+
             db.add(session)
             db.commit()
             db.refresh(session)

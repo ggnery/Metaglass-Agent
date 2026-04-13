@@ -64,7 +64,6 @@ message RegisterDeviceResponse {
 // ── CreateSession ──────────────────────────────────────────────────
 message CreateSessionRequest {
   string user_id = 1;
-  string device_id = 2;
   map<string, string> initial_metadata = 3; // language, timezone, GPS, etc.
 }
 

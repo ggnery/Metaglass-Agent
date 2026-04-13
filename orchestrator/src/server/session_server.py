@@ -89,7 +89,6 @@ class SessionServer(session_pb2_grpc.SessionServicer):
         try:
             session = self.session_service.create_session(
                 user_id=request.user_id,
-                device_id=request.device_id or None,
                 initial_metadata=dict(request.initial_metadata),
             )
 
