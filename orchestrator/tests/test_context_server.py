@@ -10,11 +10,7 @@ def service(mock_db_factory, mock_qdrant):
 
 
 def test_semantic_search_is_unimplemented(service, mock_servicer_context):
-    query = common_pb2.MediaPayload(
-        modality=common_pb2.Modality.MODALITY_TEXT,
-        data=b"test",
-        mime_type="text/plain",
-    )
+    query = common_pb2.MediaPayload(data=b"test", mime_type="text/plain")
     request = context_pb2.SemanticSearchRequest(user_id="u1", query=query)
     with pytest.raises(NotImplementedError):
         service.SemanticSearch(request, mock_servicer_context)
@@ -22,12 +18,13 @@ def test_semantic_search_is_unimplemented(service, mock_servicer_context):
 
 def test_push_context_is_unimplemented(service, mock_servicer_context):
     payload = common_pb2.MediaPayload(
-        modality=common_pb2.Modality.MODALITY_TEXT,
         data=b"supermarket",
         mime_type="text/plain",
         metadata={"context_hint": "location"},
     )
-    request = context_pb2.PushContextRequest(session_id="s1", payload=payload)
+    request = context_pb2.PushContextRequest(
+        session_id="s1", payload=payload, ttl=3600
+    )
     with pytest.raises(NotImplementedError):
         service.PushContext(request, mock_servicer_context)
 
