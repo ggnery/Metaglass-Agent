@@ -1,5 +1,6 @@
 import os
 import sys
+import urllib.request
 from concurrent import futures
 from logging import INFO, basicConfig, getLogger
 
@@ -71,6 +72,9 @@ def main() -> None:
 
     qdrant_client.get_collections()
     logger.info("Qdrant connection verified")
+
+    urllib.request.urlopen(f"{Config.OLLAMA_URL}/api/tags", timeout=5).read()
+    logger.info("Ollama connection verified")
 
     server.add_insecure_port(f"[::]:{Config.GRPC_PORT}")
     logger.info("gRPC server starting on port %s", Config.GRPC_PORT)
