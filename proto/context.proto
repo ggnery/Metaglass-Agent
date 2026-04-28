@@ -26,8 +26,8 @@ service Context {
 message SemanticSearchRequest {
   string user_id = 1;
 
-  // Multimodal query — text uses MODALITY_TEXT with utf-8 bytes;
-  // audio/image queries use their respective modalities.
+  // Multimodal query — text uses "text/plain" with utf-8 bytes;
+  // audio/image queries use their own mime types.
   MediaPayload query = 2;
 
   int32 top_k = 3;                    // number of results to return
@@ -50,13 +50,14 @@ message SemanticResult {
 }
 
 // ── PushContext ─────────────────────────────────────────────────────
-//  Context entries are MediaPayloads — text uses MODALITY_TEXT with
-//  utf-8 bytes; audio/image/video use their respective modalities.
+//  Context entries are MediaPayloads — text uses "text/plain" with
+//  utf-8 bytes; audio/image/video use their own mime types.
 //  Use payload.metadata for both modality-specific attributes
 //  (sample_rate, width, ...) and free-form labels (context_hint, gps, ...).
 message PushContextRequest {
   string session_id = 1;
   MediaPayload payload = 2;
+  int32 ttl = 3;                      // context TTL in seconds
 }
 
 message PushContextResponse {
