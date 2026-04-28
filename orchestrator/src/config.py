@@ -21,6 +21,10 @@ class Config:
     QDRANT_PORT: int = int(os.getenv("QDRANT_PORT", "6333"))
     QDRANT_GRPC_PORT: int = int(os.getenv("QDRANT_GRPC_PORT", "6334"))
 
+    OLLAMA_HOST: str = os.getenv("OLLAMA_HOST", "localhost")
+    OLLAMA_PORT: int = int(os.getenv("OLLAMA_PORT", "11434"))
+    OLLAMA_URL: str = f"http://{OLLAMA_HOST}:{OLLAMA_PORT}"
+
     # Session Reaper Config
     REAPER_INTERVAL_SECONDS: int = int(os.getenv("REAPER_INTERVAL_SECONDS", "30"))
     ACTIVE_SESSION_TIMEOUT_SECONDS: int = int(
