@@ -12,6 +12,12 @@ import "common.proto";
 //  session to load context from Qdrant/PostgreSQL.
 service Session {
 
+  // Registers a new device (glasses).
+  rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse);
+
+  // Creates a new user profile.
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+
   // Opens a session — loads user profile, recent history (Postgres),
   // and semantic context (Qdrant).
   rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
@@ -27,10 +33,37 @@ service Session {
   rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
 }
 
+// ── CreateUser ─────────────────────────────────────────────────────
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+  string preferred_language = 3;
+  string device_id = 4;
+  map<string, string> metadata = 5;
+}
+
+message CreateUserResponse {
+  Status status = 1;
+  string user_id = 2;
+}
+
+
+// ── RegisterDevice ─────────────────────────────────────────────────
+message RegisterDeviceRequest {
+  string device_name = 1;
+  string device_model = 2;
+  map<string, string> metadata = 3;
+}
+
+message RegisterDeviceResponse {
+  Status status = 1;
+  string device_id = 2;
+}
+
+
 // ── CreateSession ──────────────────────────────────────────────────
 message CreateSessionRequest {
   string user_id = 1;
-  string device_id = 2;
   map<string, string> initial_metadata = 3; // language, timezone, GPS, etc.
 }
 
