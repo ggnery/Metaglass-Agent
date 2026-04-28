@@ -6,6 +6,7 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    LargeBinary,
     Text,
     text,
 )
@@ -133,8 +134,8 @@ class SessionContext(Base):
         ForeignKey("session.id", ondelete="CASCADE"),
         nullable=False,
     )
-    context_type = Column(Text, nullable=False)
-    content = Column(Text, nullable=False)
+    data = Column(LargeBinary, nullable=False)
+    mime_type = Column(Text, nullable=False)
     metadata_ = Column("metadata", JSONB, nullable=False, server_default=_EMPTY_JSONB)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=_NOW)
     expires_at = Column(DateTime(timezone=True), nullable=False)

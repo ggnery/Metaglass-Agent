@@ -11,12 +11,12 @@ from sqlalchemy.orm import Session, sessionmaker
 # Ensure the project root is in the path so `generated` is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from generated import context_pb2_grpc, orchestrator_pb2_grpc, session_pb2_grpc
+from generated import context_pb2_grpc, session_pb2_grpc, stream_pb2_grpc
 
 from config import Config
 from server.context_server import ContextServer
-from server.orchestrator_server import OrchestratorServer
 from server.session_server import SessionServer
+from server.stream_server import StreamServer
 from service.session_reaper import SessionReaper
 
 basicConfig(level=INFO)
@@ -39,8 +39,8 @@ def main() -> None:
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
-    orchestrator_pb2_grpc.add_OrchestratorServicer_to_server(
-        OrchestratorServer(db_factory=SessionLocal, qdrant=qdrant_client),
+    stream_pb2_grpc.add_StreamServicer_to_server(
+        StreamServer(db_factory=SessionLocal, qdrant=qdrant_client),
         server,
     )
     session_pb2_grpc.add_SessionServicer_to_server(
@@ -53,11 +53,11 @@ def main() -> None:
     )
 
     # Enable gRPC reflection so grpcurl can discover services
-    from generated import context_pb2, orchestrator_pb2, session_pb2
+    from generated import context_pb2, session_pb2, stream_pb2
     from grpc_reflection.v1alpha import reflection
 
     service_names = (
-        orchestrator_pb2.DESCRIPTOR.services_by_name["Orchestrator"].full_name,
+        stream_pb2.DESCRIPTOR.services_by_name["Stream"].full_name,
         session_pb2.DESCRIPTOR.services_by_name["Session"].full_name,
         context_pb2.DESCRIPTOR.services_by_name["Context"].full_name,
         reflection.SERVICE_NAME,

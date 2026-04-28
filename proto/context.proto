@@ -25,7 +25,11 @@ service Context {
 // ── SemanticSearch ─────────────────────────────────────────────────
 message SemanticSearchRequest {
   string user_id = 1;
-  string query_text = 2;              // text for similarity search
+
+  // Multimodal query — text uses "text/plain" with utf-8 bytes;
+  // audio/image queries use their own mime types.
+  MediaPayload query = 2;
+
   int32 top_k = 3;                    // number of results to return
   float score_threshold = 4;          // minimum similarity score (0.0 - 1.0)
   repeated string collections = 5;    // target Qdrant collections: "documents", "history", ...
@@ -41,14 +45,19 @@ message SemanticResult {
   string id = 1;
   string collection = 2;
   float score = 3;
-  string content = 4;                 // fragment text
+  MediaPayload payload = 4;           // indexed fragment (text/audio/image/video)
   map<string, string> metadata = 5;   // source, date, type, etc.
 }
 
 // ── PushContext ─────────────────────────────────────────────────────
+//  Context entries are MediaPayloads — text uses "text/plain" with
+//  utf-8 bytes; audio/image/video use their own mime types.
+//  Use payload.metadata for both modality-specific attributes
+//  (sample_rate, width, ...) and free-form labels (context_hint, gps, ...).
 message PushContextRequest {
   string session_id = 1;
-  ContextEntry entry = 2;
+  MediaPayload payload = 2;
+  int32 ttl = 3;                      // context TTL in seconds
 }
 
 message PushContextResponse {
@@ -64,13 +73,5 @@ message GetSessionContextRequest {
 
 message GetSessionContextResponse {
   Status status = 1;
-  repeated ContextEntry entries = 2;
-}
-
-// ── Helper types ───────────────────────────────────────────────────
-message ContextEntry {
-  string context_type = 1;            // "location", "calendar_event", "visual_scene", "user_action"
-  string content = 2;                 // textual context content
-  map<string, string> metadata = 3;
-  int32 ttl = 4;                      // context TTL in seconds
+  repeated MediaPayload entries = 2;
 }

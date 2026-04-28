@@ -17,28 +17,16 @@ message Status {
   string message = 2;
 }
 
-// ── Media modality ─────────────────────────────────────────────────
-enum Modality {
-  MODALITY_UNSPECIFIED = 0;
-  MODALITY_AUDIO = 1;
-  MODALITY_IMAGE = 2;
-  MODALITY_VIDEO = 3;
-  MODALITY_TEXT = 4;
-}
-
 // ── Generic multimodal payload ─────────────────────────────────────
 message MediaPayload {
-  Modality modality = 1;
-  bytes data = 2;                     // raw bytes (opus audio, jpeg frame, etc.)
-  string mime_type = 3;               // "audio/opus", "image/jpeg", "video/h264"
-  optional int64 duration_ms = 4;     // relevant for audio/video
-  optional int32 sample_rate = 5;     // relevant for audio
-  optional Resolution resolution = 6; // relevant for image/video
-}
+  bytes data = 1;                     // raw bytes (opus audio, jpeg frame, utf-8 text, etc.)
+  string mime_type = 2;               // "audio/opus", "image/jpeg", "video/h264", "text/plain"
 
-message Resolution {
-  int32 width = 1;
-  int32 height = 2;
+  // Free-form modality-specific attributes:
+  //   audio: {"sample_rate": "48000", "duration_ms": "1500", "channels": "2"}
+  //   image: {"width": "1920", "height": "1080"}
+  //   video: {"width": "1920", "height": "1080", "fps": "30", "duration_ms": "5000"}
+  map<string, string> metadata = 3;
 }
 
 // ── Streaming control ──────────────────────────────────────────────
